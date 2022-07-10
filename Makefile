@@ -3,14 +3,23 @@
 CFLAGS=-DPOLL_TIME=500
 INC=
 CC=g++
+INSTALLPATH=/usr/bin
 
-# %: %.cpp
-# 	$(CC) $(CFLAGS) $(INC) $< -o$@
+%: %.cpp
+	$(CC) $(CFLAGS) $(INC) $< -o$@
 
 $(patsubst %.cpp,%,$(wildcard *.cpp)):
 	$(CC) $(CFLAGS) $(INC) $@.cpp -o$@
 
-.PHONY: clean
+.PHONY: clean install uninstall
+
+install: rot8cpp
+	install -m 755 -o root rot8cpp $(INSTALLPATH)
+	@# INSTALLPATHS="$(shell echo $$PATH | grep -o $$HOME[^:]* | sort | uniq)"
+
+
+uninstall:
+	rm -rf $(INSTALLPATH)/rot8cpp
 
 clean:
 	rm -rf rot8cpp
