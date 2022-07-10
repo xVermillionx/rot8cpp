@@ -7,8 +7,30 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <csignal>
 
-#include <mutex>
+// Signal related
+
+struct {
+  bool running;
+} g = { true };
+
+
+void signalHandler(int signum) {
+  if(signum == SIGUSR1){
+    g.running = false;
+    // std::cout << "Stop Signal" << std::endl;
+  }
+  else if (signum == SIGUSR2) {
+    g.running = true;
+    // std::cout << "Start Signal" << std::endl;
+  }
+  else {
+
+  }
+}
+
+// Application
 
 #define POLL_TIME 500
 #define POS_POLL_TIME POLL_TIME
@@ -114,7 +136,10 @@ void getPosT (Position& p){
   getRotDevices(dev);
 
   while(true){
-    getPosition(p, dev);
+    // Only Run if allowed
+    if(g.running) {
+      getPosition(p, dev);
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(POS_POLL_TIME));
   }
 }
@@ -126,14 +151,15 @@ void printPosT (Position& p){
   int rotatetdir=0;
   int oldrotatetdir=0;
   while(true){
-    // std::cout << current.p.x << ", " << current.p.y << ", " << current.p.z << std::endl;
-    float pseudox = std::round(current.p.x);
-    float pseudoy = std::round(current.p.y);
-    if (pseudox != 0 || pseudoy != 0) rotatetdir = 90 * pseudox + (current.p.y > 0.8 ? 180 : 0);
+    // Only Run if allowed
+    if(g.running) {
+      float pseudox = std::round(current.p.x);
+      float pseudoy = std::round(current.p.y);
+      if (pseudox != 0 || pseudoy != 0) rotatetdir = 90 * pseudox + (current.p.y > 0.8 ? 180 : 0);
 
-    // std::cout << "Rotationdir: " << rotatetdir << std::endl;
-    if (rotatetdir != oldrotatetdir) std::cout << rotatetdir << std::endl;
-    oldrotatetdir = rotatetdir;
+      if (rotatetdir != oldrotatetdir) std::cout << rotatetdir << std::endl;
+      oldrotatetdir = rotatetdir;
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(ROT_POLL_TIME));
   }
 }
@@ -144,6 +170,9 @@ bool positionMatch(const Position& p1, const Position& p2){
 }
 
 int main (int argc, char* argv[]) {
+
+  signal(SIGUSR1, signalHandler);
+  signal(SIGUSR2, signalHandler);
 
   Position pos = {0, 0, 0};
 
