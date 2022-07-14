@@ -13,7 +13,8 @@
 
 struct {
   bool running;
-} g = { true };
+  uint8_t index;
+} g = { true, 0 };
 
 
 void signalHandler(int signum) {
@@ -91,10 +92,15 @@ Device getRotDevice(const std::filesystem::path& p){
         files.path().string().find(ACCELREG1) != std::string::npos &&
         files.path().string().find(ACCELREG2) != std::string::npos
       ){
-      if (d.name == "") d.name = p.filename();
+      if (d.name == "") {
+        std::ifstream s(p / "name");
+        d.name = p.filename();
+        s >> d.name;
+      }
       d.devs.emplace_back(files.path().string());
     }
   }
+  // std::cout << d.name << std::endl;
   // Sort Devices Alphabetically
   std::sort(d.devs.begin(), d.devs.end(), [](std::string a, std::string b){
     return a<b;
@@ -118,8 +124,8 @@ void getRotDevices(std::vector<Device>& dev){
 void getPosition(Position& p, std::vector<Device> dev ) {
   uint8_t i = 0;
   float *pos = (float*)&p;
-  for (const auto& d : dev[0].devs) {
-    // std::cout << "Getting Position of: " << dev[0].name << std::endl;
+  for (const auto& d : dev[g.index].devs) {
+    // std::cout << "Getting Position of: " << dev[g.index].name << std::endl;
     std::ifstream s(d);
     s >> pos[i];
     pos[i] = pos[i]/1e6;
@@ -169,7 +175,40 @@ bool positionMatch(const Position& p1, const Position& p2){
   return p1.x == p2.x && p1.y == p2.y && p1.z == p2.z;
 }
 
+void help(){
+  std::cout << "rot8cpp"        << "\tHelp Page:" << std::endl;
+  std::cout << "-h|--help"      << "\tView this page" << std::endl;
+  std::cout << "--listDevIndex" << "\tList Devices with index, that are available to use for this daemon" << std::endl;
+  std::cout << "--devIndex"     << "\tSelect Index of the Device you want to use for the daemon" << std::endl;
+}
+
+#include <string.h>
+
 int main (int argc, char* argv[]) {
+
+  for(int i = 1; i < argc; i++){
+    if(strcmp(argv[i], "--devIndex") == 0){
+      i++;
+      g.index = atoi(argv[i]);
+    }
+    else if(strcmp(argv[i], "--listDevIndex") == 0){
+      std::vector<Device> dev;
+      getRotDevices(dev);
+      int k = 0;
+      for(auto & d : dev){
+        std::cout << k++ << ": " << d.name << std::endl;
+      }
+      return 0;
+    }
+    else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0){
+      help();
+      return 0;
+    }
+    else{
+      help();
+      return 1;
+    }
+  }
 
   signal(SIGUSR1, signalHandler);
   signal(SIGUSR2, signalHandler);
