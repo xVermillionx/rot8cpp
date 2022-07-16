@@ -11,10 +11,17 @@
 
 // Signal related
 
+#include <unistd.h>
+bool isPiped (FILE* fd){
+  return isatty(fileno(fd)) == 1;
+}
+
 struct {
   bool running;
   uint8_t index;
-} g = { true, 0 };
+  bool istty;
+  bool debug;
+} g = { true, 0, false, false };
 
 
 void signalHandler(int signum) {
@@ -32,6 +39,9 @@ void signalHandler(int signum) {
 }
 
 // Application
+
+#define RED "\e[31m"
+#define NONE "\e[0m"
 
 #define POLL_TIME 500
 #define POS_POLL_TIME POLL_TIME
@@ -162,6 +172,16 @@ void printPosT (Position& p){
       float pseudox = std::round(current.p.x);
       float pseudoy = std::round(current.p.y);
       if (pseudox != 0 || pseudoy != 0) rotatetdir = 90 * pseudox + (current.p.y > 0.8 ? 180 : 0);
+      if (g.debug){
+        if (g.istty) std::cout << (pseudox == 0 ? RED : NONE) ;
+        std::cout << current.p.x ;
+        if (g.istty) std::cout << NONE ;
+        std::cout << ", " ;
+        if (g.istty) std::cout << (pseudoy == 0 ? RED : NONE);
+        std::cout << current.p.y;
+        if (g.istty) std::cout << NONE ;
+        std::cout << ", " << current.p.z << std::endl;
+      }
 
       if (rotatetdir != oldrotatetdir) std::cout << rotatetdir << std::endl;
       oldrotatetdir = rotatetdir;
@@ -186,6 +206,8 @@ void help(){
 
 int main (int argc, char* argv[]) {
 
+  g.istty = isPiped(stdout);
+
   for(int i = 1; i < argc; i++){
     if(strcmp(argv[i], "--devIndex") == 0){
       i++;
@@ -199,6 +221,9 @@ int main (int argc, char* argv[]) {
         std::cout << k++ << ": " << d.name << std::endl;
       }
       return 0;
+    }
+    else if(strcmp(argv[i], "--debug") == 0){
+      g.debug = true;
     }
     else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0){
       help();
