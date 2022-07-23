@@ -166,18 +166,23 @@ void printPosT (Position& p){
 
   int rotatetdir=0;
   int oldrotatetdir=0;
+
+  const int8_t invalidx = 0;
+  const int8_t invalidy = 1;
+
   while(true){
     // Only Run if allowed
     if(g.running) {
       float pseudox = std::round(current.p.x);
       float pseudoy = std::round(current.p.y);
-      if (pseudox != 0 || pseudoy != 0) rotatetdir = 90 * pseudox + (current.p.y > 0.8 ? 180 : 0);
+      // if (pseudox != invalidx || pseudoy != invalidy) rotatetdir = 90 * pseudox + (current.p.y > 0.8 ? 180 : 0);
+      if (pseudox+pseudoy != 0 || pseudoy+pseudox != 2) rotatetdir = 90 * pseudox + (current.p.y > 0.8 ? 180 : 0);
       if (g.debug){
-        if (g.istty) std::cout << (pseudox == 0 ? RED : NONE) ;
+        if (g.istty) std::cout << (pseudox == invalidx ? RED : NONE) ;
         std::cout << current.p.x ;
         if (g.istty) std::cout << NONE ;
         std::cout << ", " ;
-        if (g.istty) std::cout << (pseudoy == 0 ? RED : NONE);
+        if (g.istty) std::cout << (pseudoy == invalidy ? RED : NONE);
         std::cout << current.p.y;
         if (g.istty) std::cout << NONE ;
         std::cout << ", " << current.p.z << std::endl;
@@ -200,6 +205,7 @@ void help(){
   std::cout << "-h|--help"      << "\tView this page" << std::endl;
   std::cout << "--listDevIndex" << "\tList Devices with index, that are available to use for this daemon" << std::endl;
   std::cout << "--devIndex"     << "\tSelect Index of the Device you want to use for the daemon" << std::endl;
+  std::cout << "--paused"       << "\tStarts in a paused state" << std::endl;
 }
 
 #include <string.h>
@@ -224,6 +230,9 @@ int main (int argc, char* argv[]) {
     }
     else if(strcmp(argv[i], "--debug") == 0){
       g.debug = true;
+    }
+    else if(strcmp(argv[i], "--paused") == 0){
+      g.running = false;
     }
     else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0){
       help();
