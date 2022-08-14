@@ -8,7 +8,7 @@ cmd="wlr-randr --output --transform "
 rot8val=(normal 90 270 180)
 
 case $wm in
-  hyprland)
+  hyprland|Hyprland)
     cmd="hyprctl keyword monitor $monitor0,transform,"
     rot8val=(0 1 3 2)
     ;;
