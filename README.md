@@ -3,9 +3,15 @@
 Just a small rotation to be daemon for auto rotating screen.
 
 
+## Initial
+```bash
+cmake .
+
+```
+
 ## Build
 ```bash
-make rot8cpp
+make
 
 ```
 
