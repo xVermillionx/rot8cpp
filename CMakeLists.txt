@@ -46,3 +46,15 @@ set(MY_LIBS -lm)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(${EXECUTABLE_NAME} ${SOURCES})
 target_link_libraries(${EXECUTABLE_NAME} compile_flags ${MY_LIBS})
+
+
+set(INSTALLPATH ${CMAKE_INSTALL_BINDIR} "/usr/bin")
+install(TARGETS ${EXECUTABLE_NAME}
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+        DESTINATION ${INSTALLPATH})
+
+add_custom_target(uninstall
+        COMMAND rm -rf ${INSTALLPATH}/${EXECUTABLE_NAME}
+        DEPENDS ${EXECUTABLE_NAME}
+        COMMENT "Installing Program")
+
