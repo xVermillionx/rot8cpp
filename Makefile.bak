@@ -8,7 +8,7 @@ INSTALLPATH=/usr/bin
 %: %.cpp
 	$(CC) $(CFLAGS) $(INC) $< -o$@
 
-$(patsubst %.cpp,%,$(wildcard *.cpp)):
+$(patsubst %.cpp,%,$(wildcard *.cpp)): $(wildcard *.cpp)
 	$(CC) $(CFLAGS) $(INC) $@.cpp -o$@
 
 .PHONY: clean install uninstall

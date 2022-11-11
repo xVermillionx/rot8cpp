@@ -23,6 +23,19 @@ struct {
   bool debug;
 } g = { true, 0, false, false };
 
+void sig_rtmin_handler(int signum, siginfo_t *siginfo, void *context)
+{
+  if(siginfo->si_value.sival_int == 0){
+    // std::cout << "RTMIN Recieved" << std::endl;
+    g.running = !g.running;
+  }
+  /* switch (siginfo -> si_value.sival_int) {
+    case:
+    default:
+  } */
+};
+
+
 
 void signalHandler(int signum) {
   if(signum == SIGUSR1){
@@ -246,6 +259,13 @@ int main (int argc, char* argv[]) {
 
   signal(SIGUSR1, signalHandler);
   signal(SIGUSR2, signalHandler);
+  struct sigaction act;
+  memset (&act, 0, sizeof (act));
+  // set signal handler for SIGRTMIN
+  act.sa_sigaction = sig_rtmin_handler;
+  act.sa_flags = SA_SIGINFO;
+  if (sigaction (SIGRTMIN, &act, NULL) == -1)
+      std::cerr << "sigaction" << std::endl;
 
   Position pos = {0, 0, 0};
 
