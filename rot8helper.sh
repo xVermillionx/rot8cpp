@@ -5,11 +5,13 @@ monitor0='eDP-1'
 
 # Default
 cmd="wlr-randr --output --transform "
+cmd2=""
 rot8val=(normal 90 270 180)
 
 case $wm in
   hyprland|Hyprland)
     cmd="hyprctl keyword monitor $monitor0,transform,"
+    cmd2="hyprctl keyword input:touchdevice:transform "
     rot8val=(0 1 3 2)
     ;;
   river)
@@ -29,15 +31,19 @@ do
   case $rot in
     0)
       ${cmd}${rot8val[0]} >/dev/null
+      ${cmd2:+${cmd2}${rot8val[0]} >dev/null}
       ;;
     90)
       ${cmd}${rot8val[1]} >/dev/null
+      ${cmd2:+${cmd2}${rot8val[1]} >dev/null}
       ;;
     -90)
       ${cmd}${rot8val[2]} >/dev/null
+      ${cmd2:+${cmd2}${rot8val[2]} >dev/null}
       ;;
     180)
       ${cmd}${rot8val[3]} >/dev/null
+      ${cmd2:+${cmd2}${rot8val[3]} >dev/null}
       ;;
     *)
       echo ERROR
