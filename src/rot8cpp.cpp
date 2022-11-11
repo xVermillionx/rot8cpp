@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 #include <csignal>
+#include <cassert>
 
 // Signal related
 
@@ -23,6 +24,8 @@ struct {
   bool debug;
 } g = { true, 0, false, false };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void sig_rtmin_handler(int signum, siginfo_t *siginfo, void *context)
 {
   if(siginfo->si_value.sival_int == 0){
@@ -34,6 +37,7 @@ void sig_rtmin_handler(int signum, siginfo_t *siginfo, void *context)
     default:
   } */
 };
+#pragma GCC diagnostic pop
 
 
 
@@ -53,8 +57,8 @@ void signalHandler(int signum) {
 
 // Application
 
-#define RED "\e[31m"
-#define NONE "\e[0m"
+#define RED "\033[31m"
+#define NONE "\033[0m"
 
 #define POLL_TIME 500
 #define POS_POLL_TIME POLL_TIME
@@ -132,7 +136,7 @@ Device getRotDevice(const std::filesystem::path& p){
 }
 
 void getRotDevices(std::vector<Device>& dev){
-  uint8_t i = 0;
+  // uint8_t i = 0;
   for (const auto& devices : std::filesystem::directory_iterator(DEVICES)) {
     if(devices.path().string().find(DEVTYPE) != std::string::npos){
       Device d = getRotDevice(devices.path());
@@ -151,7 +155,7 @@ void getPosition(Position& p, std::vector<Device> dev ) {
     // std::cout << "Getting Position of: " << dev[g.index].name << std::endl;
     std::ifstream s(d);
     s >> pos[i];
-    pos[i] = pos[i]/1e6;
+    pos[i] = pos[i]/1'000'000; // 1e6
     i++;
     if (i > 2)
       break;
@@ -189,7 +193,7 @@ void printPosT (Position& p){
       float pseudox = std::round(current.p.x);
       float pseudoy = std::round(current.p.y);
       // if (pseudox != invalidx || pseudoy != invalidy) rotatetdir = 90 * pseudox + (current.p.y > 0.8 ? 180 : 0);
-      if (pseudox+pseudoy != 0 || pseudoy+pseudox != 2) rotatetdir = 90 * pseudox + (current.p.y > 0.8 ? 180 : 0);
+      if (pseudox+pseudoy != 0 || pseudoy+pseudox != 2) rotatetdir = (int)(90 * pseudox + (current.p.y > 0.8 ? 180 : 0));
       if (g.debug){
         if (g.istty) std::cout << (pseudox == invalidx ? RED : NONE) ;
         std::cout << current.p.x ;
@@ -229,8 +233,9 @@ int main (int argc, char* argv[]) {
 
   for(int i = 1; i < argc; i++){
     if(strcmp(argv[i], "--devIndex") == 0){
+      assert(strlen(argv[i]) > 3);
       i++;
-      g.index = atoi(argv[i]);
+      g.index = (uint8_t)atoi(argv[i]);
     }
     else if(strcmp(argv[i], "--listDevIndex") == 0){
       std::vector<Device> dev;
