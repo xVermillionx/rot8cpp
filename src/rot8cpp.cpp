@@ -12,6 +12,21 @@
 #include <cassert>
 #include <cstring>
 
+// Debug
+
+#ifdef DEBUG
+template<typename ...Args>
+void debug_log(Args && ...args)
+{
+    (std::cout << ... << args);
+}
+#define DEBUG_LOG(...) debug_log(__VA_ARGS__)
+// #define DEBUG_LOG(...) std::cout << __VA_ARGS__ << std::endl;
+#else
+#define DEBUG_LOG(...)
+#endif
+
+
 // Signal related
 
 #include <unistd.h>
@@ -31,8 +46,8 @@ struct {
 void sig_rtmin_handler(int signum, siginfo_t *siginfo, void *context)
 {
   if(siginfo->si_value.sival_int == 0){
-    // std::cout << "RTMIN Recieved" << std::endl;
     g.running = !g.running;
+    DEBUG_LOG("RTMIN Recieved\n");
   }
   /* switch (siginfo -> si_value.sival_int) {
     case:
@@ -46,11 +61,11 @@ void sig_rtmin_handler(int signum, siginfo_t *siginfo, void *context)
 void signalHandler(int signum) {
   if(signum == SIGUSR1){
     g.running = false;
-    // std::cout << "Stop Signal" << std::endl;
+    DEBUG_LOG("Stop Signal\n");
   }
   else if (signum == SIGUSR2) {
     g.running = true;
-    // std::cout << "Start Signal" << std::endl;
+    DEBUG_LOG("Start Signal\n");
   }
   else {
 
@@ -133,7 +148,6 @@ Device getRotDevice(const std::filesystem::path& p){
       d.devs.emplace_back(files.path().string());
     }
   }
-  // std::cout << d.name << std::endl;
   // Sort Devices Alphabetically
   std::sort(d.devs.begin(), d.devs.end(), [](std::string a, std::string b){
     return a<b;
@@ -190,8 +204,10 @@ void printPosT (Position& p){
   int rotatetdir = 0;
   int oldrotatetdir = 0;
 
+#ifdef DEBUG
   const int8_t invalidx = 0;
   const int8_t invalidy = 1;
+#endif // DEBUG
 
   while(true){
     // Only Run if allowed
@@ -200,16 +216,18 @@ void printPosT (Position& p){
       float pseudoy = std::round(current.p.y);
       // if (pseudox != invalidx || pseudoy != invalidy) rotatetdir = 90 * pseudox + (current.p.y > 0.8 ? 180 : 0);
       if (pseudox+pseudoy != 0 || pseudoy+pseudox != 2) rotatetdir = static_cast<int>(90 * pseudox + (current.p.y > 0.8 ? 180 : 0));
+#ifdef DEBUG
       if (g.debug){
-        if (g.istty) std::cout << (pseudox == invalidx ? RED : NONE) ;
-        std::cout << current.p.x ;
-        if (g.istty) std::cout << NONE ;
-        std::cout << ", " ;
-        if (g.istty) std::cout << (pseudoy == invalidy ? RED : NONE);
-        std::cout << current.p.y;
-        if (g.istty) std::cout << NONE ;
-        std::cout << ", " << current.p.z << std::endl;
+        if (g.istty) DEBUG_LOG(pseudox == invalidx ? RED : NONE);
+        DEBUG_LOG(current.p.x);
+        if (g.istty) DEBUG_LOG(NONE);
+        DEBUG_LOG(", ");
+        if (g.istty) DEBUG_LOG(pseudoy == invalidy ? RED : NONE);
+        DEBUG_LOG(current.p.y);
+        if (g.istty) DEBUG_LOG(NONE);
+        DEBUG_LOG(", ", current.p.z, "\n");
       }
+#endif // DEBUG
 
       if (rotatetdir != oldrotatetdir) std::cout << rotatetdir << std::endl;
       oldrotatetdir = rotatetdir;
@@ -258,9 +276,11 @@ int main (int argc, char* argv[]) {
       }
       return 0;
     }
+#ifdef DEBUG
     else if(strcmp(argv[i], "--debug") == 0){
       g.debug = true;
     }
+#endif // DEBUG
     else if(strcmp(argv[i], "--paused") == 0){
       g.running = false;
     }
