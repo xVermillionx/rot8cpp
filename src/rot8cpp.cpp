@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <cstdint>
 #include <thread>
 #include <chrono>
@@ -9,6 +10,7 @@
 #include <cmath>
 #include <csignal>
 #include <cassert>
+#include <cstring>
 
 // Signal related
 
@@ -57,6 +59,10 @@ void signalHandler(int signum) {
 
 // Application
 
+#define U8_MAX ((unsigned int)((uint8_t)-1))
+
+#define YELLOW "\033[33m"
+#define GREEN "\033[32m"
 #define RED "\033[31m"
 #define NONE "\033[0m"
 
@@ -150,7 +156,7 @@ void getRotDevices(std::vector<Device>& dev){
 
 void getPosition(Position& p, std::vector<Device> dev ) {
   uint8_t i = 0;
-  float *pos = (float*)&p;
+  float *pos = reinterpret_cast<float*>(&p);
   for (const auto& d : dev[g.index].devs) {
     // std::cout << "Getting Position of: " << dev[g.index].name << std::endl;
     std::ifstream s(d);
@@ -181,8 +187,8 @@ void printPosT (Position& p){
 
   Orientation current = { NORMAL_0, p };
 
-  int rotatetdir=0;
-  int oldrotatetdir=0;
+  int rotatetdir = 0;
+  int oldrotatetdir = 0;
 
   const int8_t invalidx = 0;
   const int8_t invalidy = 1;
@@ -193,7 +199,7 @@ void printPosT (Position& p){
       float pseudox = std::round(current.p.x);
       float pseudoy = std::round(current.p.y);
       // if (pseudox != invalidx || pseudoy != invalidy) rotatetdir = 90 * pseudox + (current.p.y > 0.8 ? 180 : 0);
-      if (pseudox+pseudoy != 0 || pseudoy+pseudox != 2) rotatetdir = (int)(90 * pseudox + (current.p.y > 0.8 ? 180 : 0));
+      if (pseudox+pseudoy != 0 || pseudoy+pseudox != 2) rotatetdir = static_cast<int>(90 * pseudox + (current.p.y > 0.8 ? 180 : 0));
       if (g.debug){
         if (g.istty) std::cout << (pseudox == invalidx ? RED : NONE) ;
         std::cout << current.p.x ;
@@ -218,14 +224,18 @@ bool positionMatch(const Position& p1, const Position& p2){
 }
 
 void help(){
-  std::cout << "rot8cpp"        << "\tHelp Page:" << std::endl;
-  std::cout << "-h|--help"      << "\tView this page" << std::endl;
-  std::cout << "--listDevIndex" << "\tList Devices with index, that are available to use for this daemon" << std::endl;
-  std::cout << "--devIndex"     << "\tSelect Index of the Device you want to use for the daemon" << std::endl;
-  std::cout << "--paused"       << "\tStarts in a paused state" << std::endl;
-}
+  int w = 15;
+  std::cout << std::left << std::setw(w) << "usage: rot8cpp" << "[-h | --help] [--listDevIndex]" << std::endl;
+  std::cout << std::left << std::setw(w) << " "              << "[--devIndex <index>] [--paused]" << std::endl;
 
-#include <string.h>
+  std::cout << std::endl << "HELP Options"    << std::endl;
+  std::cout << "  " << std::left << std::setw(w) << "-h | --help"    << "View this page" << std::endl;
+  std::cout << "  " << std::left << std::setw(w) << "--listDevIndex" << "List Devices with index, that are available to use for this daemon" << std::endl;
+
+  std::cout << std::endl  << "RUN Options"    << std::endl;
+  std::cout << "  " << std::left << std::setw(w) << "--devIndex"     << "Select Index of the Device you want to use for the daemon" << std::endl;
+  std::cout << "  " << std::left << std::setw(w) << std::left << std::setw(w) << "--paused"       << "Starts in a paused state" << std::endl;
+}
 
 int main (int argc, char* argv[]) {
 
@@ -234,8 +244,10 @@ int main (int argc, char* argv[]) {
   for(int i = 1; i < argc; i++){
     if(strcmp(argv[i], "--devIndex") == 0){
       assert(strlen(argv[i]) > 3);
+      unsigned int x = static_cast<unsigned int>(atoi(argv[i]));
+      assert(x < U8_MAX+1);
       i++;
-      g.index = (uint8_t)atoi(argv[i]);
+      g.index = static_cast<uint8_t>(x);
     }
     else if(strcmp(argv[i], "--listDevIndex") == 0){
       std::vector<Device> dev;
