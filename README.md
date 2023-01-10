@@ -32,3 +32,10 @@ sudo make uninstall
 make clean
 
 ```
+
+## Debug Build
+```bash
+cmake -DCMAKE_BUILD_TYPE=Debug .
+
+```
+

@@ -11,6 +11,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release")
+endif()
+
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+  message(NOTICE "Debug Mode")
+elseif(CMAKE_BUILD_TYPE MATCHES Release)
+  message(NOTICE "Release Mode")
+endif()
 # Never set in cmake file use env vars
 # set(CMAKE_C_COMPILER gcc)
 # set(CMAKE_CXX_COMPILER g++)
@@ -27,14 +36,36 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCC)
   message(NOTICE "Using gcc")
   add_library(compile_flags INTERFACE)
-  target_compile_options(compile_flags INTERFACE -Wall -Wextra -Wpedantic -Wconversion -Werror=vla -lstdc++ -g)
+  target_compile_options(compile_flags INTERFACE
+    -Wall -Wextra -Wpedantic -Wconversion -Werror=vla -lstdc++
+    $<$<CONFIG:DEBUG>:-g3>
+    $<$<CONFIG:DEBUG>:-Og>
+    $<$<CONFIG:DEBUG>:-DDEBUG>
+    $<$<CONFIG:RELEASE>:-O3>
+    )
 elseif(CMAKE_COMPILER_IS_GNUCXX)
   message(NOTICE "Using g++")
   add_library(compile_flags INTERFACE)
-  target_compile_options(compile_flags INTERFACE -Wall -Wextra -Wpedantic -Wconversion -Werror=vla -g)
+  target_compile_options(compile_flags INTERFACE
+    -Wall -Wextra -Wpedantic -Wconversion -Werror=vla
+    $<$<CONFIG:DEBUG>:-g3>
+    $<$<CONFIG:DEBUG>:-Og>
+    $<$<CONFIG:DEBUG>:-DDEBUG>
+    $<$<CONFIG:RELEASE>:-O3>
+    )
 else()
   message(FATAL_ERROR "unknown compiler detected")
 endif()
+
+# add_compile_definitions(
+#   $<$<CONFIG:DEBUG>:DEBUG>
+# )
+
+include(CMakePrintHelpers)
+cmake_print_variables(CONFIG)
+cmake_print_variables(CMAKE_BUILD_TYPE)
+cmake_print_variables(CMAKE_CXX_COMPILER_ID)
+cmake_print_variables(CMAKE_CXX_COMPILER_VERSION)
 
 add_custom_target(run
         COMMAND ./${EXECUTABLE_NAME}

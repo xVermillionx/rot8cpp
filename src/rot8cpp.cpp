@@ -245,6 +245,9 @@ void help(){
   int w = 15;
   std::cout << std::left << std::setw(w) << "usage: rot8cpp" << "[-h | --help] [--listDevIndex]" << std::endl;
   std::cout << std::left << std::setw(w) << " "              << "[--devIndex <index>] [--paused]" << std::endl;
+#ifdef DEBUG
+  std::cout << std::left << std::setw(w) << " "              << "[--debug]" << std::endl;
+#endif // DEBUG
 
   std::cout << std::endl << "HELP Options"    << std::endl;
   std::cout << "  " << std::left << std::setw(w) << "-h | --help"    << "View this page" << std::endl;
@@ -253,6 +256,9 @@ void help(){
   std::cout << std::endl  << "RUN Options"    << std::endl;
   std::cout << "  " << std::left << std::setw(w) << "--devIndex"     << "Select Index of the Device you want to use for the daemon" << std::endl;
   std::cout << "  " << std::left << std::setw(w) << std::left << std::setw(w) << "--paused"       << "Starts in a paused state" << std::endl;
+#ifdef DEBUG
+  std::cout << "  " << std::left << std::setw(w) << std::left << std::setw(w) << "--debug"       << "Starts in a debug state" << std::endl;
+#endif // DEBUG
 }
 
 int main (int argc, char* argv[]) {
