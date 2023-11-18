@@ -80,7 +80,7 @@ void sig_rtmin_handler(int signum, siginfo_t *siginfo, void *context)
 
 
 void signalHandler(int signum) {
-  int shm_fd = shm_open(sharedMemoryName, O_WRONLY, 0644);
+  int shm_fd = shm_open(sharedMemoryName, O_RDWR, 0644);
   struct Global* g = (struct Global*)mmap(NULL, sizeof(struct Global), PROT_WRITE, MAP_SHARED, shm_fd, 0);
   if (g == MAP_FAILED) {
     perror("mmap");
