@@ -412,6 +412,21 @@ int main (int argc, char* argv[]) {
         std::cerr << "Unlinked Semaphore" << std::endl;
         return 0;
       }
+      else if(strcmp(argv[i], "--set") == 0 && argc == i+2){
+        if(strcmp(argv[i+1], "toggle") == 0){
+          g->running = !g->running;
+        } else {
+          g->running = strcmp(argv[i+1], "lock") != 0;
+        }
+        // std::cout << std::boolalpha << realProg;
+        if(isPiped(stdout)) {
+          std::cout << "State:";
+        }
+        std::cout << g->running << std::endl;
+        munmap(g, sizeof(struct Global));
+        close(shm_fd);
+        return 0;
+      }
       else if(strcmp(argv[i], "--state") == 0){
         if(isPiped(stdout)) {
           std::cout << "State:";
