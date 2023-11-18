@@ -342,8 +342,12 @@ int main (int argc, char* argv[]) {
   const bool realProg = (semaphore != SEM_FAILED);
 
   // Shared Memory
-  shm_fd = shm_open(sharedMemoryName, O_CREAT | O_RDWR, 0644);
-  ftruncate(shm_fd, sizeof(struct Global));
+  if(realProg){
+    shm_fd = shm_open(sharedMemoryName, O_CREAT | O_RDWR, 0644);
+    ftruncate(shm_fd, sizeof(struct Global));
+  } else {
+    shm_fd = shm_open(sharedMemoryName, O_RDWR, 0644);
+  }
   struct Global* g = (struct Global*)mmap(NULL, sizeof(struct Global), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
   if (g == MAP_FAILED) {
     perror("mmap");
@@ -351,9 +355,10 @@ int main (int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  if(realProg) *g = init_g;
-
-  if(realProg) g->istty = isPiped(stdout);
+  if(realProg){
+    *g = init_g;
+    g->istty = isPiped(stdout);
+  }
 
   for(int i = 1; i < argc; i++){
     if(realProg){
