@@ -289,6 +289,7 @@ void printPosT (Position& p){
       float pseudoy = std::round(current.p.y);
       // if (pseudox != invalidx || pseudoy != invalidy) rotatetdir = 90 * pseudox + (current.p.y > 0.8 ? 180 : 0);
       if (pseudox+pseudoy != 0 || pseudoy+pseudox != 2) rotatetdir = static_cast<int>(90 * pseudox + (current.p.y > 0.8 ? 180 : 0));
+      // if (pseudox+pseudoy != 0 || pseudoy+pseudox != 2) rotatetdir = static_cast<int>(90 * pseudox + (current.p.y > 0.8 ? 180 : 0));
 #ifdef DEBUG
       if (g->debug){
         if (g->istty) DEBUG_LOG(pseudox == invalidx ? RED : NONE);
@@ -425,6 +426,31 @@ int main (int argc, char* argv[]) {
         std::cout << g->running << std::endl;
         munmap(g, sizeof(struct Global));
         close(shm_fd);
+        return 0;
+      }
+      else if(strcmp(argv[i], "--watch") == 0){
+        bool piped = isPiped(stdout);
+        bool state = g->running;
+        if(argc == i+2 && strcmp(argv[i+1], "-1") == 0){
+            if(piped) {
+              std::cout << "State:";
+            }
+            std::cout << state << std::endl;
+        }
+        while(true){
+          if(state != g->running){
+            if(piped) {
+              std::cout << "State:";
+            }
+            std::cout << g->running << std::endl;
+            state = g->running;
+          }
+          std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        }
+        munmap(g, sizeof(struct Global));
+        close(shm_fd);
+        // shm_unlink(sharedMemoryName);
+        // sem_unlink(semaphoreName);
         return 0;
       }
       else if(strcmp(argv[i], "--state") == 0){
